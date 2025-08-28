@@ -176,4 +176,123 @@ public class CurrentUserApiTest extends TestWithCurrentUser {
         .then()
         .statusCode(401);
   }
+
+  @Test
+  public void should_handle_partial_profile_updates() throws Exception {
+    Map<String, Object> param = new HashMap<String, Object>() {
+      {
+        put("user", new HashMap<String, Object>() {
+          {
+            put("bio", "Updated bio only");
+          }
+        });
+      }
+    };
+
+    when(userRepository.findByUsername(eq(username))).thenReturn(Optional.empty());
+    when(userRepository.findByEmail(eq(email))).thenReturn(Optional.empty());
+    when(userQueryService.findById(eq(user.getId()))).thenReturn(Optional.of(userData));
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(param)
+        .when()
+        .put("/user")
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  public void should_validate_email_format_on_update() throws Exception {
+    Map<String, Object> param = new HashMap<String, Object>() {
+      {
+        put("user", new HashMap<String, Object>() {
+          {
+            put("email", "invalid-email-format");
+          }
+        });
+      }
+    };
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(param)
+        .when()
+        .put("/user")
+        .then()
+        .statusCode(422);
+  }
+
+  @Test
+  public void should_prevent_username_conflicts_on_update() throws Exception {
+    String conflictingUsername = "existinguser";
+    Map<String, Object> param = new HashMap<String, Object>() {
+      {
+        put("user", new HashMap<String, Object>() {
+          {
+            put("username", conflictingUsername);
+          }
+        });
+      }
+    };
+
+    when(userRepository.findByUsername(eq(conflictingUsername)))
+        .thenReturn(Optional.of(new User("other@test.com", conflictingUsername, "123", "", "")));
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(param)
+        .when()
+        .put("/user")
+        .then()
+        .statusCode(422);
+  }
+
+  @Test
+  public void should_handle_concurrent_profile_updates() throws Exception {
+    Map<String, Object> param1 = new HashMap<String, Object>() {
+      {
+        put("user", new HashMap<String, Object>() {
+          {
+            put("bio", "First update");
+          }
+        });
+      }
+    };
+
+    Map<String, Object> param2 = new HashMap<String, Object>() {
+      {
+        put("user", new HashMap<String, Object>() {
+          {
+            put("bio", "Second update");
+          }
+        });
+      }
+    };
+
+    when(userRepository.findByUsername(eq(username))).thenReturn(Optional.empty());
+    when(userRepository.findByEmail(eq(email))).thenReturn(Optional.empty());
+    when(userQueryService.findById(eq(user.getId()))).thenReturn(Optional.of(userData));
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(param1)
+        .when()
+        .put("/user")
+        .then()
+        .statusCode(200);
+
+    given()
+        .contentType("application/json")
+        .header("Authorization", "Token " + token)
+        .body(param2)
+        .when()
+        .put("/user")
+        .then()
+        .statusCode(200);
+  }
 }

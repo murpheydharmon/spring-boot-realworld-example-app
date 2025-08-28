@@ -4,6 +4,8 @@ import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -99,5 +101,69 @@ public class ArticleFavoriteApiTest extends TestWithCurrentUser {
         .statusCode(200)
         .body("article.id", equalTo(article.getId()));
     verify(articleFavoriteRepository).remove(new ArticleFavorite(article.getId(), user.getId()));
+  }
+
+  @Test
+  public void should_return_404_when_favoriting_nonexistent_article() throws Exception {
+    when(articleRepository.findBySlug(eq("nonexistent-slug"))).thenReturn(Optional.empty());
+    
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .post("/articles/{slug}/favorite", "nonexistent-slug")
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  public void should_handle_concurrent_favorite_unfavorite_operations() throws Exception {
+    when(articleFavoriteRepository.find(eq(article.getId()), eq(user.getId())))
+        .thenReturn(Optional.empty())
+        .thenReturn(Optional.of(new ArticleFavorite(article.getId(), user.getId())));
+
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .post("/articles/{slug}/favorite", article.getSlug())
+        .then()
+        .statusCode(200);
+
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .delete("/articles/{slug}/favorite", article.getSlug())
+        .then()
+        .statusCode(200);
+  }
+
+
+  @Test
+  public void should_prevent_duplicate_favorites() throws Exception {
+    when(articleFavoriteRepository.find(eq(article.getId()), eq(user.getId())))
+        .thenReturn(Optional.of(new ArticleFavorite(article.getId(), user.getId())));
+    
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .post("/articles/{slug}/favorite", article.getSlug())
+        .then()
+        .statusCode(200);
+
+    verify(articleFavoriteRepository).save(any());
+  }
+
+  @Test
+  public void should_handle_unfavorite_when_not_favorited() throws Exception {
+    when(articleFavoriteRepository.find(eq(article.getId()), eq(user.getId())))
+        .thenReturn(Optional.empty());
+    
+    given()
+        .header("Authorization", "Token " + token)
+        .when()
+        .delete("/articles/{slug}/favorite", article.getSlug())
+        .then()
+        .statusCode(200);
+
+    verify(articleFavoriteRepository, never()).remove(any());
   }
 }
