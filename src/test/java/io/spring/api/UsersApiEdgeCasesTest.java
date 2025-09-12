@@ -83,7 +83,8 @@ public class UsersApiEdgeCasesTest {
 
   @Test
   public void should_show_error_for_email_without_domain() throws Exception {
-    Map<String, Object> param = prepareRegisterParameter("invalidemail", "validuser", "password123");
+    Map<String, Object> param =
+        prepareRegisterParameter("invalidemail", "validuser", "password123");
 
     given()
         .contentType("application/json")
@@ -97,13 +98,7 @@ public class UsersApiEdgeCasesTest {
 
   @Test
   public void should_show_error_for_empty_request_body() throws Exception {
-    given()
-        .contentType("application/json")
-        .body("{}")
-        .when()
-        .post("/users")
-        .then()
-        .statusCode(400);
+    given().contentType("application/json").body("{}").when().post("/users").then().statusCode(400);
   }
 
   @Test
@@ -119,15 +114,18 @@ public class UsersApiEdgeCasesTest {
 
   @Test
   public void should_show_error_for_missing_required_fields() throws Exception {
-    Map<String, Object> param = new HashMap<String, Object>() {
-      {
-        put("user", new HashMap<String, Object>() {
+    Map<String, Object> param =
+        new HashMap<String, Object>() {
           {
-            put("email", "test@test.com");
+            put(
+                "user",
+                new HashMap<String, Object>() {
+                  {
+                    put("email", "test@test.com");
+                  }
+                });
           }
-        });
-      }
-    };
+        };
 
     given()
         .contentType("application/json")

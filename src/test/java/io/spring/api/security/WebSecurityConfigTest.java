@@ -19,84 +19,88 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("test")
 public class WebSecurityConfigTest {
 
-  @Autowired
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
   @Test
   public void should_protect_authenticated_endpoints() throws Exception {
-    mockMvc.perform(get("/user"))
+    mockMvc.perform(get("/user")).andExpect(status().isUnauthorized());
+
+    mockMvc
+        .perform(
+            post("/articles")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"article\":{\"title\":\"test\",\"description\":\"test\",\"body\":\"test\"}}"))
         .andExpect(status().isUnauthorized());
 
-    mockMvc.perform(post("/articles")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("{\"article\":{\"title\":\"test\",\"description\":\"test\",\"body\":\"test\"}}"))
-        .andExpect(status().isUnauthorized());
-
-    mockMvc.perform(post("/profiles/testuser/follow"))
-        .andExpect(status().isUnauthorized());
+    mockMvc.perform(post("/profiles/testuser/follow")).andExpect(status().isUnauthorized());
   }
 
   @Test
   public void should_allow_public_endpoints() throws Exception {
-    mockMvc.perform(get("/tags"))
-        .andExpect(status().isOk());
+    mockMvc.perform(get("/tags")).andExpect(status().isOk());
 
-    mockMvc.perform(get("/articles"))
-        .andExpect(status().isOk());
+    mockMvc.perform(get("/articles")).andExpect(status().isOk());
 
-    mockMvc.perform(post("/users")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("{\"user\":{\"email\":\"invalid-email\",\"username\":\"test\",\"password\":\"password\"}}"))
+    mockMvc
+        .perform(
+            post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"user\":{\"email\":\"invalid-email\",\"username\":\"test\",\"password\":\"password\"}}"))
         .andExpect(status().isUnprocessableEntity());
 
-    mockMvc.perform(post("/users/login")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("{\"user\":{\"email\":\"test@test.com\",\"password\":\"password\"}}"))
+    mockMvc
+        .perform(
+            post("/users/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"user\":{\"email\":\"test@test.com\",\"password\":\"password\"}}"))
         .andExpect(status().isUnprocessableEntity());
   }
 
   @Test
   public void should_handle_cors_configuration() throws Exception {
-    mockMvc.perform(get("/tags")
-        .header("Origin", "http://localhost:3000"))
+    mockMvc
+        .perform(get("/tags").header("Origin", "http://localhost:3000"))
         .andExpect(status().isOk());
 
-    mockMvc.perform(get("/articles")
-        .header("Origin", "https://example.com"))
+    mockMvc
+        .perform(get("/articles").header("Origin", "https://example.com"))
         .andExpect(status().isOk());
   }
 
   @Test
   public void should_validate_jwt_filter_chain() throws Exception {
-    mockMvc.perform(get("/user")
-        .header("Authorization", "Token invalid-token"))
+    mockMvc
+        .perform(get("/user").header("Authorization", "Token invalid-token"))
         .andExpect(status().isUnauthorized());
 
-    mockMvc.perform(get("/user")
-        .header("Authorization", "Bearer invalid-token"))
+    mockMvc
+        .perform(get("/user").header("Authorization", "Bearer invalid-token"))
         .andExpect(status().isUnauthorized());
 
-    mockMvc.perform(get("/user")
-        .header("Authorization", "invalid-format"))
+    mockMvc
+        .perform(get("/user").header("Authorization", "invalid-format"))
         .andExpect(status().isUnauthorized());
   }
 
   @Test
   public void should_handle_missing_authorization_header() throws Exception {
-    mockMvc.perform(post("/articles")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("{\"article\":{\"title\":\"test\",\"description\":\"test\",\"body\":\"test\"}}"))
+    mockMvc
+        .perform(
+            post("/articles")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"article\":{\"title\":\"test\",\"description\":\"test\",\"body\":\"test\"}}"))
         .andExpect(status().isUnauthorized());
   }
 
   @Test
   public void should_handle_malformed_authorization_header() throws Exception {
-    mockMvc.perform(get("/user")
-        .header("Authorization", ""))
-        .andExpect(status().isUnauthorized());
+    mockMvc.perform(get("/user").header("Authorization", "")).andExpect(status().isUnauthorized());
 
-    mockMvc.perform(get("/user")
-        .header("Authorization", "Token"))
+    mockMvc
+        .perform(get("/user").header("Authorization", "Token"))
         .andExpect(status().isUnauthorized());
   }
 }

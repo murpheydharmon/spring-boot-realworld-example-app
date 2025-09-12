@@ -179,15 +179,18 @@ public class CurrentUserApiTest extends TestWithCurrentUser {
 
   @Test
   public void should_handle_partial_profile_updates() throws Exception {
-    Map<String, Object> param = new HashMap<String, Object>() {
-      {
-        put("user", new HashMap<String, Object>() {
+    Map<String, Object> param =
+        new HashMap<String, Object>() {
           {
-            put("bio", "Updated bio only");
+            put(
+                "user",
+                new HashMap<String, Object>() {
+                  {
+                    put("bio", "Updated bio only");
+                  }
+                });
           }
-        });
-      }
-    };
+        };
 
     when(userRepository.findByUsername(eq(username))).thenReturn(Optional.empty());
     when(userRepository.findByEmail(eq(email))).thenReturn(Optional.empty());
@@ -205,15 +208,18 @@ public class CurrentUserApiTest extends TestWithCurrentUser {
 
   @Test
   public void should_validate_email_format_on_update() throws Exception {
-    Map<String, Object> param = new HashMap<String, Object>() {
-      {
-        put("user", new HashMap<String, Object>() {
+    Map<String, Object> param =
+        new HashMap<String, Object>() {
           {
-            put("email", "invalid-email-format");
+            put(
+                "user",
+                new HashMap<String, Object>() {
+                  {
+                    put("email", "invalid-email-format");
+                  }
+                });
           }
-        });
-      }
-    };
+        };
 
     given()
         .contentType("application/json")
@@ -228,15 +234,18 @@ public class CurrentUserApiTest extends TestWithCurrentUser {
   @Test
   public void should_prevent_username_conflicts_on_update() throws Exception {
     String conflictingUsername = "existinguser";
-    Map<String, Object> param = new HashMap<String, Object>() {
-      {
-        put("user", new HashMap<String, Object>() {
+    Map<String, Object> param =
+        new HashMap<String, Object>() {
           {
-            put("username", conflictingUsername);
+            put(
+                "user",
+                new HashMap<String, Object>() {
+                  {
+                    put("username", conflictingUsername);
+                  }
+                });
           }
-        });
-      }
-    };
+        };
 
     when(userRepository.findByUsername(eq(conflictingUsername)))
         .thenReturn(Optional.of(new User("other@test.com", conflictingUsername, "123", "", "")));
@@ -253,25 +262,31 @@ public class CurrentUserApiTest extends TestWithCurrentUser {
 
   @Test
   public void should_handle_concurrent_profile_updates() throws Exception {
-    Map<String, Object> param1 = new HashMap<String, Object>() {
-      {
-        put("user", new HashMap<String, Object>() {
+    Map<String, Object> param1 =
+        new HashMap<String, Object>() {
           {
-            put("bio", "First update");
+            put(
+                "user",
+                new HashMap<String, Object>() {
+                  {
+                    put("bio", "First update");
+                  }
+                });
           }
-        });
-      }
-    };
+        };
 
-    Map<String, Object> param2 = new HashMap<String, Object>() {
-      {
-        put("user", new HashMap<String, Object>() {
+    Map<String, Object> param2 =
+        new HashMap<String, Object>() {
           {
-            put("bio", "Second update");
+            put(
+                "user",
+                new HashMap<String, Object>() {
+                  {
+                    put("bio", "Second update");
+                  }
+                });
           }
-        });
-      }
-    };
+        };
 
     when(userRepository.findByUsername(eq(username))).thenReturn(Optional.empty());
     when(userRepository.findByEmail(eq(email))).thenReturn(Optional.empty());

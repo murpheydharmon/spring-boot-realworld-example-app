@@ -27,17 +27,13 @@ import org.springframework.test.context.ActiveProfiles;
 @Import(DgsAutoConfiguration.class)
 public class UserMutationTest {
 
-  @Autowired
-  DgsQueryExecutor dgsQueryExecutor;
+  @Autowired DgsQueryExecutor dgsQueryExecutor;
 
-  @MockBean
-  private UserRepository userRepository;
+  @MockBean private UserRepository userRepository;
 
-  @MockBean
-  private UserService userService;
+  @MockBean private UserService userService;
 
-  @MockBean
-  private PasswordEncoder passwordEncoder;
+  @MockBean private PasswordEncoder passwordEncoder;
 
   private User user;
 
@@ -50,18 +46,19 @@ public class UserMutationTest {
   public void should_create_user_via_graphql() {
     when(userService.createUser(any())).thenReturn(user);
 
-    String mutation = "mutation { " +
-        "createUser(input: { " +
-        "email: \"test@test.com\" " +
-        "username: \"testuser\" " +
-        "password: \"password\" " +
-        "}) { " +
-        "user { " +
-        "email " +
-        "username " +
-        "} " +
-        "} " +
-        "}";
+    String mutation =
+        "mutation { "
+            + "createUser(input: { "
+            + "email: \"test@test.com\" "
+            + "username: \"testuser\" "
+            + "password: \"password\" "
+            + "}) { "
+            + "user { "
+            + "email "
+            + "username "
+            + "} "
+            + "} "
+            + "}";
 
     dgsQueryExecutor.execute(mutation);
   }
@@ -71,36 +68,39 @@ public class UserMutationTest {
     when(userRepository.findByEmail(eq("test@test.com"))).thenReturn(Optional.of(user));
     when(passwordEncoder.matches(eq("password"), eq(user.getPassword()))).thenReturn(true);
 
-    String mutation = "mutation { " +
-        "login(email: \"test@test.com\", password: \"password\") { " +
-        "user { " +
-        "email " +
-        "username " +
-        "} " +
-        "} " +
-        "}";
+    String mutation =
+        "mutation { "
+            + "login(email: \"test@test.com\", password: \"password\") { "
+            + "user { "
+            + "email "
+            + "username "
+            + "} "
+            + "} "
+            + "}";
 
     dgsQueryExecutor.execute(mutation);
   }
 
   @Test
   public void should_update_user_via_graphql() {
-    SecurityContextHolder.getContext().setAuthentication(
-        new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList()));
+    SecurityContextHolder.getContext()
+        .setAuthentication(
+            new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList()));
 
-    String mutation = "mutation { " +
-        "updateUser(changes: { " +
-        "email: \"updated@test.com\" " +
-        "username: \"updateduser\" " +
-        "bio: \"Updated bio\" " +
-        "}) { " +
-        "user { " +
-        "email " +
-        "username " +
-        "bio " +
-        "} " +
-        "} " +
-        "}";
+    String mutation =
+        "mutation { "
+            + "updateUser(changes: { "
+            + "email: \"updated@test.com\" "
+            + "username: \"updateduser\" "
+            + "bio: \"Updated bio\" "
+            + "}) { "
+            + "user { "
+            + "email "
+            + "username "
+            + "bio "
+            + "} "
+            + "} "
+            + "}";
 
     dgsQueryExecutor.execute(mutation);
   }
@@ -110,13 +110,14 @@ public class UserMutationTest {
     when(userRepository.findByEmail(eq("test@test.com"))).thenReturn(Optional.of(user));
     when(passwordEncoder.matches(eq("wrongpassword"), eq(user.getPassword()))).thenReturn(false);
 
-    String mutation = "mutation { " +
-        "login(email: \"test@test.com\", password: \"wrongpassword\") { " +
-        "user { " +
-        "email " +
-        "} " +
-        "} " +
-        "}";
+    String mutation =
+        "mutation { "
+            + "login(email: \"test@test.com\", password: \"wrongpassword\") { "
+            + "user { "
+            + "email "
+            + "} "
+            + "} "
+            + "}";
 
     try {
       dgsQueryExecutor.execute(mutation);
@@ -128,13 +129,14 @@ public class UserMutationTest {
   public void should_handle_user_not_found_login() {
     when(userRepository.findByEmail(eq("notfound@test.com"))).thenReturn(Optional.empty());
 
-    String mutation = "mutation { " +
-        "login(email: \"notfound@test.com\", password: \"password\") { " +
-        "user { " +
-        "email " +
-        "} " +
-        "} " +
-        "}";
+    String mutation =
+        "mutation { "
+            + "login(email: \"notfound@test.com\", password: \"password\") { "
+            + "user { "
+            + "email "
+            + "} "
+            + "} "
+            + "}";
 
     try {
       dgsQueryExecutor.execute(mutation);

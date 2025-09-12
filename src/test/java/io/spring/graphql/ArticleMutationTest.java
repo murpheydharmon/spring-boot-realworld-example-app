@@ -29,17 +29,13 @@ import org.springframework.test.context.ActiveProfiles;
 @Import(DgsAutoConfiguration.class)
 public class ArticleMutationTest {
 
-  @Autowired
-  DgsQueryExecutor dgsQueryExecutor;
+  @Autowired DgsQueryExecutor dgsQueryExecutor;
 
-  @MockBean
-  private ArticleCommandService articleCommandService;
+  @MockBean private ArticleCommandService articleCommandService;
 
-  @MockBean
-  private ArticleRepository articleRepository;
+  @MockBean private ArticleRepository articleRepository;
 
-  @MockBean
-  private ArticleFavoriteRepository articleFavoriteRepository;
+  @MockBean private ArticleFavoriteRepository articleFavoriteRepository;
 
   private User user;
   private Article article;
@@ -47,30 +43,34 @@ public class ArticleMutationTest {
   @BeforeEach
   public void setUp() {
     user = new User("test@test.com", "testuser", "password", "bio", "image");
-    article = new Article("Test Title", "Test Description", "Test Body", Arrays.asList("java"), user.getId());
-    
-    SecurityContextHolder.getContext().setAuthentication(
-        new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList()));
+    article =
+        new Article(
+            "Test Title", "Test Description", "Test Body", Arrays.asList("java"), user.getId());
+
+    SecurityContextHolder.getContext()
+        .setAuthentication(
+            new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList()));
   }
 
   @Test
   public void should_create_article_via_graphql() {
     when(articleCommandService.createArticle(any(), eq(user))).thenReturn(article);
 
-    String mutation = "mutation { " +
-        "createArticle(input: { " +
-        "title: \"Test Title\" " +
-        "description: \"Test Description\" " +
-        "body: \"Test Body\" " +
-        "tagList: [\"java\"] " +
-        "}) { " +
-        "article { " +
-        "title " +
-        "description " +
-        "body " +
-        "} " +
-        "} " +
-        "}";
+    String mutation =
+        "mutation { "
+            + "createArticle(input: { "
+            + "title: \"Test Title\" "
+            + "description: \"Test Description\" "
+            + "body: \"Test Body\" "
+            + "tagList: [\"java\"] "
+            + "}) { "
+            + "article { "
+            + "title "
+            + "description "
+            + "body "
+            + "} "
+            + "} "
+            + "}";
 
     dgsQueryExecutor.execute(mutation);
   }
@@ -80,19 +80,20 @@ public class ArticleMutationTest {
     when(articleRepository.findBySlug(eq("test-title"))).thenReturn(Optional.of(article));
     when(articleCommandService.updateArticle(eq(article), any())).thenReturn(article);
 
-    String mutation = "mutation { " +
-        "updateArticle(slug: \"test-title\", changes: { " +
-        "title: \"Updated Title\" " +
-        "description: \"Updated Description\" " +
-        "body: \"Updated Body\" " +
-        "}) { " +
-        "article { " +
-        "title " +
-        "description " +
-        "body " +
-        "} " +
-        "} " +
-        "}";
+    String mutation =
+        "mutation { "
+            + "updateArticle(slug: \"test-title\", changes: { "
+            + "title: \"Updated Title\" "
+            + "description: \"Updated Description\" "
+            + "body: \"Updated Body\" "
+            + "}) { "
+            + "article { "
+            + "title "
+            + "description "
+            + "body "
+            + "} "
+            + "} "
+            + "}";
 
     dgsQueryExecutor.execute(mutation);
   }
@@ -101,14 +102,15 @@ public class ArticleMutationTest {
   public void should_favorite_article_via_graphql() {
     when(articleRepository.findBySlug(eq("test-title"))).thenReturn(Optional.of(article));
 
-    String mutation = "mutation { " +
-        "favoriteArticle(slug: \"test-title\") { " +
-        "article { " +
-        "title " +
-        "favorited " +
-        "} " +
-        "} " +
-        "}";
+    String mutation =
+        "mutation { "
+            + "favoriteArticle(slug: \"test-title\") { "
+            + "article { "
+            + "title "
+            + "favorited "
+            + "} "
+            + "} "
+            + "}";
 
     dgsQueryExecutor.execute(mutation);
   }
@@ -117,18 +119,19 @@ public class ArticleMutationTest {
   public void should_handle_authorization_errors_in_graphql() {
     SecurityContextHolder.getContext().setAuthentication(null);
 
-    String mutation = "mutation { " +
-        "createArticle(input: { " +
-        "title: \"Test Title\" " +
-        "description: \"Test Description\" " +
-        "body: \"Test Body\" " +
-        "tagList: [\"java\"] " +
-        "}) { " +
-        "article { " +
-        "title " +
-        "} " +
-        "} " +
-        "}";
+    String mutation =
+        "mutation { "
+            + "createArticle(input: { "
+            + "title: \"Test Title\" "
+            + "description: \"Test Description\" "
+            + "body: \"Test Body\" "
+            + "tagList: [\"java\"] "
+            + "}) { "
+            + "article { "
+            + "title "
+            + "} "
+            + "} "
+            + "}";
 
     try {
       dgsQueryExecutor.execute(mutation);
@@ -140,11 +143,8 @@ public class ArticleMutationTest {
   public void should_delete_article_via_graphql() {
     when(articleRepository.findBySlug(eq("test-title"))).thenReturn(Optional.of(article));
 
-    String mutation = "mutation { " +
-        "deleteArticle(slug: \"test-title\") { " +
-        "success " +
-        "} " +
-        "}";
+    String mutation =
+        "mutation { " + "deleteArticle(slug: \"test-title\") { " + "success " + "} " + "}";
 
     dgsQueryExecutor.execute(mutation);
   }

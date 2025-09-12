@@ -21,8 +21,10 @@ public class AuthorizationServiceTest {
     articleAuthor = new User("author@test.com", "author", "password", "bio", "image");
     commentAuthor = new User("commenter@test.com", "commenter", "password", "bio", "image");
     otherUser = new User("other@test.com", "other", "password", "bio", "image");
-    
-    article = new Article("Test Article", "Description", "Body", Arrays.asList("java"), articleAuthor.getId());
+
+    article =
+        new Article(
+            "Test Article", "Description", "Body", Arrays.asList("java"), articleAuthor.getId());
     comment = new Comment("Test comment", commentAuthor.getId(), article.getId());
   }
 
@@ -82,11 +84,13 @@ public class AuthorizationServiceTest {
 
   @Test
   public void should_handle_different_user_ids() {
-    User userWithDifferentId = new User("different@test.com", "different", "password", "bio", "image");
-    
+    User userWithDifferentId =
+        new User("different@test.com", "different", "password", "bio", "image");
+
     boolean canWriteArticle = AuthorizationService.canWriteArticle(userWithDifferentId, article);
-    boolean canWriteComment = AuthorizationService.canWriteComment(userWithDifferentId, article, comment);
-    
+    boolean canWriteComment =
+        AuthorizationService.canWriteComment(userWithDifferentId, article, comment);
+
     Assertions.assertFalse(canWriteArticle);
     Assertions.assertFalse(canWriteComment);
   }
