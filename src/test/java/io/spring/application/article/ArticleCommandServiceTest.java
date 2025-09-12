@@ -7,8 +7,12 @@ import io.spring.core.user.UserRepository;
 import java.util.Arrays;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
+import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Transactional
+@Rollback
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ArticleCommandServiceTest {
 
   @Autowired
@@ -32,7 +39,8 @@ public class ArticleCommandServiceTest {
 
   @BeforeEach
   public void setUp() {
-    user = new User("test@test.com", "testuser", "password", "bio", "image");
+    String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+    user = new User("test" + uniqueId + "@test.com", "testuser" + uniqueId, "password", "bio", "image");
     userRepository.save(user);
   }
 
@@ -78,27 +86,27 @@ public class ArticleCommandServiceTest {
   }
 
   @Test
-  public void should_handle_duplicate_slug_creation() {
+  public void should_validate_duplicate_title_constraint() {
     NewArticleParam param1 = NewArticleParam.builder()
-        .title("Same Title")
+        .title("Unique Title")
         .description("Description 1")
         .body("Body 1")
         .tagList(Arrays.asList("java"))
         .build();
 
     NewArticleParam param2 = NewArticleParam.builder()
-        .title("Same Title")
+        .title("Unique Title")
         .description("Description 2")
         .body("Body 2")
         .tagList(Arrays.asList("spring"))
         .build();
 
     Article article1 = articleCommandService.createArticle(param1, user);
-    Article article2 = articleCommandService.createArticle(param2, user);
-
     Assertions.assertNotNull(article1);
-    Assertions.assertNotNull(article2);
-    Assertions.assertNotEquals(article1.getSlug(), article2.getSlug());
+
+    Assertions.assertThrows(javax.validation.ConstraintViolationException.class, () -> {
+      articleCommandService.createArticle(param2, user);
+    });
   }
 
   @Test
