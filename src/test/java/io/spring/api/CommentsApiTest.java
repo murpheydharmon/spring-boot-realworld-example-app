@@ -120,7 +120,7 @@ public class CommentsApiTest extends TestWithCurrentUser {
   public void should_get_comments_of_article_success() throws Exception {
     when(commentQueryService.findByArticleId(anyString(), eq(null)))
         .thenReturn(Arrays.asList(commentData));
-    RestAssuredMockMvc.when()
+    given().when()
         .get("/articles/{slug}/comments", article.getSlug())
         .prettyPeek()
         .then()

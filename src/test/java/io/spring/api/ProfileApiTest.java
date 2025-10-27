@@ -53,7 +53,8 @@ public class ProfileApiTest extends TestWithCurrentUser {
   public void should_get_user_profile_success() throws Exception {
     when(profileQueryService.findByUsername(eq(profileData.getUsername()), eq(null)))
         .thenReturn(Optional.of(profileData));
-    RestAssuredMockMvc.when()
+    given()
+        .when()
         .get("/profiles/{username}", profileData.getUsername())
         .prettyPeek()
         .then()
