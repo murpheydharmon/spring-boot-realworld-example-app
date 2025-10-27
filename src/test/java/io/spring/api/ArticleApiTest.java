@@ -68,7 +68,8 @@ public class ArticleApiTest extends TestWithCurrentUser {
 
     when(articleQueryService.findBySlug(eq(slug), eq(null))).thenReturn(Optional.of(articleData));
 
-    RestAssuredMockMvc.when()
+    given()
+        .when()
         .get("/articles/{slug}", slug)
         .then()
         .statusCode(200)
@@ -80,7 +81,7 @@ public class ArticleApiTest extends TestWithCurrentUser {
   @Test
   public void should_404_if_article_not_found() throws Exception {
     when(articleQueryService.findBySlug(anyString(), any())).thenReturn(Optional.empty());
-    RestAssuredMockMvc.when().get("/articles/not-exists").then().statusCode(404);
+    given().when().get("/articles/not-exists").then().statusCode(404);
   }
 
   @Test
